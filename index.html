@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>치지직 채팅 속도 측정기 v0.4</title>
+  <title>치지직 CPM 오버레이 v0.7</title>
   <style>
     :root {
       --bg: #07100d;
@@ -89,6 +89,40 @@
       grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
       gap: 18px;
       align-items: start;
+    }
+
+    .service-home {
+      display: none;
+    }
+
+    body.service-home .layout {
+      display: none;
+    }
+
+    body.service-home .service-home {
+      display: grid;
+      min-height: 420px;
+      place-items: center;
+    }
+
+    .service-card {
+      width: min(620px, 100%);
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .service-card h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+    }
+
+    .service-card p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.65;
     }
 
     .obs-display,
@@ -252,6 +286,10 @@
       margin-bottom: 0;
     }
 
+    .button-row.stack {
+      grid-template-columns: 1fr;
+    }
+
     .button {
       min-height: 48px;
       border: 0;
@@ -350,6 +388,92 @@
 
     .connection-note.error {
       color: var(--danger);
+    }
+
+    .link-panel {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(34, 229, 139, 0.08);
+    }
+
+    .link-panel.hidden {
+      display: none;
+    }
+
+    .link-panel-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .link-caption {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .advanced-settings {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .advanced-settings summary {
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 900;
+      list-style-position: inside;
+    }
+
+    .advanced-settings .settings {
+      margin-top: 14px;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .legacy-tools {
+      display: none;
+    }
+
+    .copy-field {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .copy-field input {
+      min-width: 0;
+      height: 44px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.24);
+      font-size: 0.76rem;
+    }
+
+    .copy-button {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .copy-help {
+      margin: -2px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
     }
 
     body.obs-only .app {
@@ -622,18 +746,31 @@
     }
   </style>
 </head>
-<body>
+<body class="service-home">
   <main class="app">
     <header class="header">
       <div>
-        <h1 class="title">치지직 채팅 속도 측정기 v0.4</h1>
-        <p class="subtitle">테스트 버튼으로 채팅 이벤트를 추가하는 OBS 브라우저 소스용 화면입니다.</p>
+        <h1 class="title">치지직 CPM 오버레이 v0.7</h1>
+        <p class="subtitle">치지직 로그인 후 OBS 브라우저 소스용 오버레이 주소를 발급받는 화면입니다.</p>
       </div>
       <div class="status" aria-label="연결 상태">
         <span class="status-dot"></span>
         <span id="connectionStatus">테스트 모드</span>
       </div>
     </header>
+
+    <section class="service-home" id="serviceHome">
+      <div class="service-card">
+        <h2>치지직 로그인으로 시작하세요</h2>
+        <p id="homeDescription">
+          로그인하면 방송 계정 전용 OBS 오버레이 주소가 만들어집니다.
+          개발자센터 설정은 운영자 서버에만 필요하고, 사용자는 발급된 주소를 OBS에 붙여넣으면 됩니다.
+        </p>
+        <div class="button-row stack">
+          <button class="button" id="homeLoginButton" type="button">치지직 로그인</button>
+        </div>
+      </div>
+    </section>
 
     <section class="layout">
       <section class="obs-display" aria-label="OBS 표시 화면">
@@ -685,7 +822,9 @@
       </section>
 
       <aside class="controls" aria-label="설정과 테스트 조작 영역">
-        <h2>설정 / 테스트</h2>
+        <h2>내 오버레이</h2>
+        <details class="advanced-settings">
+          <summary>고급 설정 / 테스트</summary>
         <div class="button-row">
           <button class="button" id="addButton" type="button">채팅 추가</button>
           <button class="button secondary" id="resetButton" type="button">초기화</button>
@@ -722,15 +861,29 @@
           </div>
           <div class="button-row compact">
             <button class="button secondary" id="disconnectButton" type="button">연결 해제</button>
-            <button class="button secondary" id="legacyConnectButton" type="button">직접 연결 실험</button>
+            <button class="button secondary legacy-tools" id="legacyConnectButton" type="button">직접 연결 실험</button>
           </div>
           <p class="connection-note" id="connectionNote">아직 실제 채팅에 연결하지 않았습니다.</p>
-          <p class="note">
-            OBS에는 전체 화면을 넣어도 되고, 조작 영역 없이 쓰려면 주소 끝에
-            <strong>?obs=1</strong>을 붙이면 됩니다. 투명 배경처럼 쓰려면
-            <strong>?transparent=1</strong>을 함께 붙이세요.
-          </p>
         </div>
+        </details>
+          <div class="link-panel hidden" id="urlPanel">
+            <p class="link-panel-title">OBS에 붙여넣을 주소</p>
+            <p class="link-caption">OBS 브라우저 소스에는 아래 주소를 넣으면 됩니다.</p>
+            <p class="link-caption">OBS 오버레이 주소</p>
+            <div class="copy-field">
+              <input id="overlayUrlInput" type="text" readonly aria-label="OBS 오버레이 주소">
+              <button class="copy-button" id="copyOverlayButton" type="button">OBS 주소 복사</button>
+            </div>
+            <p class="copy-help">방송 화면 위에 얹어도 뒤쪽 게임이나 화면을 가리지 않는 주소입니다.</p>
+            <p class="link-caption">대시보드 주소</p>
+            <div class="copy-field">
+              <input id="dashboardUrlInput" type="text" readonly aria-label="대시보드 주소">
+              <button class="copy-button" id="copyDashboardButton" type="button">대시보드 주소 복사</button>
+            </div>
+          </div>
+          <p class="note">
+            OBS에는 위의 OBS 오버레이 주소를 브라우저 소스로 넣으면 됩니다.
+          </p>
       </aside>
     </section>
   </main>
@@ -757,11 +910,17 @@
     const channelInput = document.getElementById("channelInput");
     const autoConnectToggle = document.getElementById("autoConnectToggle");
     const loginButton = document.getElementById("loginButton");
+    const homeLoginButton = document.getElementById("homeLoginButton");
     const connectButton = document.getElementById("connectButton");
     const disconnectButton = document.getElementById("disconnectButton");
     const legacyConnectButton = document.getElementById("legacyConnectButton");
     const addButton = document.getElementById("addButton");
     const resetButton = document.getElementById("resetButton");
+    const urlPanel = document.getElementById("urlPanel");
+    const dashboardUrlInput = document.getElementById("dashboardUrlInput");
+    const overlayUrlInput = document.getElementById("overlayUrlInput");
+    const copyDashboardButton = document.getElementById("copyDashboardButton");
+    const copyOverlayButton = document.getElementById("copyOverlayButton");
 
     const STORAGE_KEY = "chzzkChatSpeedMeterSettings";
     const chatEvents = [];
@@ -910,6 +1069,52 @@
 
       sync();
       serverStatsTimer = window.setInterval(sync, 1000);
+    }
+
+    function setServiceUrls(status) {
+      const dashboardUrl = status?.dashboardUrl || "";
+      const overlayUrl = status?.overlayUrl || "";
+
+      dashboardUrlInput.value = dashboardUrl;
+      overlayUrlInput.value = overlayUrl;
+      urlPanel.classList.toggle("hidden", !dashboardUrl && !overlayUrl);
+
+      if (status?.overlayKey) {
+        document.body.classList.remove("service-home");
+      }
+    }
+
+    async function loadBridgeStatus() {
+      if (!isOfficialBridgeAvailable()) {
+        return;
+      }
+
+      try {
+        const status = await fetchBridgeJson("/api/status");
+        setServiceUrls(status);
+      } catch (error) {
+        // 로그인 전에는 사용자 주소가 없을 수 있으므로 조용히 넘어갑니다.
+      }
+    }
+
+    async function copyTextFromInput(input, button) {
+      const text = input.value.trim();
+      if (!text) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        input.select();
+        document.execCommand("copy");
+      }
+
+      const originalText = button.textContent;
+      button.textContent = "완료";
+      window.setTimeout(() => {
+        button.textContent = originalText;
+      }, 1200);
     }
 
     function connectOfficialBridgeSocket() {
@@ -1392,6 +1597,7 @@
     });
 
     loginButton.addEventListener("click", openOfficialLogin);
+    homeLoginButton.addEventListener("click", openOfficialLogin);
 
     connectButton.addEventListener("click", async () => {
       const settings = getCurrentSettings();
@@ -1430,9 +1636,14 @@
 
     addButton.addEventListener("click", addChatEvent);
     resetButton.addEventListener("click", resetStats);
+    copyDashboardButton.addEventListener("click", () => copyTextFromInput(dashboardUrlInput, copyDashboardButton));
+    copyOverlayButton.addEventListener("click", () => copyTextFromInput(overlayUrlInput, copyOverlayButton));
 
     // OBS에서 조작 패널 없이 표시 화면만 쓰고 싶을 때 ?obs=1 주소를 지원합니다.
     const query = new URLSearchParams(window.location.search);
+    if (overlayKey || query.get("obs") === "1" || query.get("mini") === "1") {
+      document.body.classList.remove("service-home");
+    }
     if (query.get("obs") === "1" || query.get("mini") === "1" || window.location.pathname.startsWith("/overlay/")) {
       document.body.classList.add("obs-only");
     }
@@ -1444,6 +1655,13 @@
       document.documentElement.classList.add("transparent");
     }
 
+    if (!window.location.protocol.startsWith("http")) {
+      const homeDescription = document.getElementById("homeDescription");
+      homeDescription.textContent = "이 화면은 서버가 켜져 있어야 사용할 수 있습니다. index.html을 직접 열지 말고 start.bat을 실행한 뒤 자동으로 열리는 http://localhost:8787 화면을 사용하세요.";
+      homeLoginButton.textContent = "start.bat을 실행하세요";
+      homeLoginButton.disabled = true;
+    }
+
     const initialSettings = loadSettings();
     applySettings(initialSettings);
     updateDisplay();
@@ -1453,6 +1671,7 @@
     // 서버로 열린 화면은 자동 연결 설정과 관계없이 서버 통계를 받아옵니다.
     // OBS 오버레이는 조작 패널이 없어서 이 기본 연결이 있어야 안정적으로 갱신됩니다.
     connectOfficialBridgeSocket();
+    loadBridgeStatus();
 
     if (initialSettings.autoConnect) {
       startOfficialBridgeSession().catch((error) => {

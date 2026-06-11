@@ -1,5 +1,6 @@
 @echo off
 cd /d "%~dp0"
+set APP_URL=http://localhost:8787
 
 if not exist ".env" (
   copy ".env.example" ".env" >nul
@@ -20,5 +21,7 @@ if not exist "node_modules" (
 )
 
 echo Starting CHZZK CPM overlay server...
+echo Browser will open: %APP_URL%
+start "" "%APP_URL%"
 npm.cmd start
 pause

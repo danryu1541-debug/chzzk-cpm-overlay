@@ -453,6 +453,15 @@ function sendIndex(response) {
   response.sendFile(path.join(__dirname, "index.html"));
 }
 
+app.get("/", (request, response) => {
+  const user = getDefaultUser();
+  if (user) {
+    response.redirect(`/dashboard/${user.overlayKey}`);
+    return;
+  }
+  sendIndex(response);
+});
+
 app.get("/dashboard/:overlayKey", (request, response) => sendIndex(response));
 app.get("/overlay/:overlayKey", (request, response) => sendIndex(response));
 app.get("/u/:overlayKey", (request, response) => response.redirect(`/dashboard/${request.params.overlayKey}`));
